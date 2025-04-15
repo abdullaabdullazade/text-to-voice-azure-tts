@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text to Speech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-green-50 min-h-screen flex items-center justify-center font-sans">
+
+    <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-8 space-y-8">
+        <h2 class="text-3xl font-bold text-center text-green-700">🗣️ Text to Speech</h2>
+        <p class="text-center text-gray-600">Enter your text and select voice for Azure TTS</p>
+
+        <div>
+            <label for="textInput" class="block mb-2 text-sm font-medium text-gray-700">Your Text</label>
+            <textarea id="textInput" rows="5"
+                class="w-full p-4 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                placeholder="Məsələn: Salam, bu mətn səsə çevriləcək..."></textarea>
+        </div>
+
+        <div>
+            <label for="voiceSelect" class="block text-sm font-medium text-gray-700">Voice</label>
+            <select id="voiceSelect"
+                class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+            </select>
+        </div>
+
+        <div class="text-center">
+            <button onclick="convertTextToSpeech()"
+                class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-green-700 transition-all duration-200">
+                🎧 Convert to Speech
+            </button>
+        </div>
+
+        <div id="audioSection" class="hidden mt-6 text-center">
+            <p class="mb-2 text-gray-700">Səs hazırdır:</p>
+            <audio id="audioPlayer" controls class="mx-auto w-full rounded-xl shadow-sm"></audio>
+        </div>
+    </div>
+
+    <script>
+        const voices = [
+            { name: "af-ZA-AdriNeural", displayName: "Afrikaans - Adri (Female)" },
+            { name: "af-ZA-WillemNeural", displayName: "Afrikaans - Willem (Male)" },
+            { name: "am-ET-MekdesNeural", displayName: "Amharic - Mekdes (Female)" },
+            { name: "am-ET-AmehaNeural", displayName: "Amharic - Ameha (Male)" },
+            { name: "ar-AE-FatimaNeural", displayName: "Arabic (UAE) - Fatima (Female)" },
+            { name: "ar-AE-HamdanNeural", displayName: "Arabic (UAE) - Hamdan (Male)" },
+            { name: "az-AZ-BanuNeural", displayName: "Azerbaijani - Banu (Female)" },
+            { name: "az-AZ-BabekNeural", displayName: "Azerbaijani - Babek (Male)" },
+            { name: "en-US-JennyNeural", displayName: "English (US) - Jenny (Female)" },
+            { name: "en-US-GuyNeural", displayName: "English (US) - Guy (Male)" },
+            { name: "tr-TR-EmelNeural", displayName: "Turkish - Emel (Female)" },
+            { name: "tr-TR-AhmetNeural", displayName: "Turkish - Ahmet (Male)" },
+            { name: "bg-BG-KalinaNeural", displayName: "Bulgarian - Kalina (Female)" },
+            { name: "bn-BD-NabanitaNeural", displayName: "Bangla (Bangladesh) - Nabanita (Female)" },
+            { name: "cs-CZ-VlastaNeural", displayName: "Czech - Vlasta (Female)" },
+            { name: "da-DK-ChristelNeural", displayName: "Danish - Christel (Female)" },
+            { name: "de-DE-KatjaNeural", displayName: "German - Katja (Female)" },
+            { name: "el-GR-AthinaNeural", displayName: "Greek - Athina (Female)" },
+            { name: "es-ES-ElviraNeural", displayName: "Spanish (Spain) - Elvira (Female)" },
+            { name: "es-MX-DaliaNeural", displayName: "Spanish (Mexico) - Dalia (Female)" },
+            { name: "et-EE-AnuNeural", displayName: "Estonian - Anu (Female)" },
+            { name: "fa-IR-DilaraNeural", displayName: "Persian - Dilara (Female)" },
+            { name: "fi-FI-NooraNeural", displayName: "Finnish - Noora (Female)" },
+            { name: "fr-FR-DeniseNeural", displayName: "French - Denise (Female)" },
+            { name: "gu-IN-DhwaniNeural", displayName: "Gujarati - Dhwani (Female)" },
+            { name: "hi-IN-SwaraNeural", displayName: "Hindi - Swara (Female)" },
+            { name: "hu-HU-NoemiNeural", displayName: "Hungarian - Noemi (Female)" },
+            { name: "id-ID-GadisNeural", displayName: "Indonesian - Gadis (Female)" },
+            { name: "it-IT-ElsaNeural", displayName: "Italian - Elsa (Female)" },
+            { name: "ja-JP-NanamiNeural", displayName: "Japanese - Nanami (Female)" },
+            { name: "jv-ID-SitiNeural", displayName: "Javanese - Siti (Female)" },
+            { name: "ko-KR-SunHiNeural", displayName: "Korean - SunHi (Female)" },
+            { name: "lt-LT-OnaNeural", displayName: "Lithuanian - Ona (Female)" },
+            { name: "lv-LV-EveritaNeural", displayName: "Latvian - Everita (Female)" },
+            { name: "ml-IN-MidhunNeural", displayName: "Malayalam - Midhun (Male)" },
+            { name: "mr-IN-AarohiNeural", displayName: "Marathi - Aarohi (Female)" },
+            { name: "ms-MY-YasminNeural", displayName: "Malay - Yasmin (Female)" },
+            { name: "nb-NO-PernilleNeural", displayName: "Norwegian - Pernille (Female)" },
+            { name: "nl-NL-FennaNeural", displayName: "Dutch - Fenna (Female)" },
+            { name: "pl-PL-ZofiaNeural", displayName: "Polish - Zofia (Female)" },
+            { name: "pt-BR-FranciscaNeural", displayName: "Portuguese (Brazil) - Francisca (Female)" },
+            { name: "pt-PT-RaquelNeural", displayName: "Portuguese (Portugal) - Raquel (Female)" },
+            { name: "ro-RO-AlinaNeural", displayName: "Romanian - Alina (Female)" },
+            { name: "ru-RU-SvetlanaNeural", displayName: "Russian - Svetlana (Female)" },
+            { name: "sk-SK-ViktoriaNeural", displayName: "Slovak - Viktoria (Female)" },
+            { name: "sl-SI-PetraNeural", displayName: "Slovenian - Petra (Female)" },
+            { name: "sr-RS-SophieNeural", displayName: "Serbian - Sophie (Female)" },
+            { name: "sv-SE-SofieNeural", displayName: "Swedish - Sofie (Female)" },
+            { name: "ta-IN-PallaviNeural", displayName: "Tamil - Pallavi (Female)" },
+            { name: "te-IN-ShrutiNeural", displayName: "Telugu - Shruti (Female)" },
+            { name: "th-TH-PremwadeeNeural", displayName: "Thai - Premwadee (Female)" },
+            { name: "uk-UA-PolinaNeural", displayName: "Ukrainian - Polina (Female)" },
+            { name: "ur-PK-AsadNeural", displayName: "Urdu - Asad (Male)" },
+            { name: "vi-VN-HoaiMyNeural", displayName: "Vietnamese - HoaiMy (Female)" },
+            { name: "zh-CN-XiaoxiaoNeural", displayName: "Chinese (Mainland) - Xiaoxiao (Female)" },
+            { name: "zh-HK-HiuMaanNeural", displayName: "Chinese (Hong Kong) - HiuMaan (Female)" },
+            { name: "zh-TW-HsiaoChenNeural", displayName: "Chinese (Taiwan) - HsiaoChen (Female)" }
+        ];
+
+        const voiceSelect = document.getElementById("voiceSelect");
+        voices.forEach(voice => {
+            const option = document.createElement("option");
+            option.value = voice.name;
+            option.textContent = voice.displayName;
+            voiceSelect.appendChild(option);
+        });
+
+        async function convertTextToSpeech() {
+            const text = document.getElementById("textInput").value.trim();
+            const voice = document.getElementById("voiceSelect").value;
+
+            const response = await fetch("/api/tts", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice: voice
+                })
+            });
+
+            const data = await response.json();
+            const audioUrl = data.audio_link;
+            const audioPlayer = document.getElementById("audioPlayer");
+            const audioSection = document.getElementById("audioSection");
+
+            audioPlayer.src = "/" + audioUrl;
+            audioSection.classList.remove("hidden");
+            audioPlayer.play();
+            console.log(data.audio_link)
+            setTimeout(
+                async () => {
+                    await fetch("/api/delete", {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            filename: data.audio_link
+                        })
+                    });
+
+                }, 10000
+            )
+
+
+        }
+    </script>
+</body>
+
+</html>

@@ -55,7 +55,6 @@ async def read_root(request: Request):
 async def audio_link(body: TTSRequest):
     text = body.text
     voice = body.voice
-    print("Received text:", text)
     os.makedirs("audio", exist_ok=True)
     audio_link = await text_to_speech(text, voice)
     return {"audio_link": audio_link}
@@ -64,7 +63,6 @@ async def audio_link(body: TTSRequest):
 @app.delete("/api/delete")
 async def delete_audio(body: TTSDeleteRequest):
     filename = body.filename
-    print("Received filename:", filename)
     try:
         os.remove(filename)
         return {"message": "File deleted "}

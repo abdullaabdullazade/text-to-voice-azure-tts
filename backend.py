@@ -22,6 +22,9 @@ class TTSDeleteRequest(BaseModel):
 
 app = FastAPI()
 
+os.makedirs("audio", exist_ok=True)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,7 +58,6 @@ async def read_root(request: Request):
 async def audio_link(body: TTSRequest):
     text = body.text
     voice = body.voice
-    os.makedirs("audio", exist_ok=True)
     audio_link = await text_to_speech(text, voice)
     return {"audio_link": audio_link}
 

@@ -43,7 +43,6 @@ async def text_to_speech(text, voice):
         await communicate.save(f"{filename_base}.ogg")
         return f"{filename_base}.ogg"
     except Exception as e:
-        print("TTS generation failed:", e)
         return None
 
 

@@ -1,2 +1,4 @@
-fastapi
-__pycache__
+fastapi[all]
+edge_tts
+uvicorn
+pydantic

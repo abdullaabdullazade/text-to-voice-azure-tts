@@ -11,7 +11,7 @@ This project converts text to speech using Microsoft Edge TTS and returns the au
 
 ```bash
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn backend:app --reload
 ```
 
 Then open in your browser:
